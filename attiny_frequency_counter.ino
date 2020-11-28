@@ -10,20 +10,23 @@ void setup()
 	pinMode(LED_PIN, OUTPUT);
 	pinMode(INT_PIN, INPUT_PULLUP);
 	pinMode(PB1, OUTPUT);
-		
-	//configuring Pin-Change-Interrupt
-	// cli();						// clear global interrupt flag (disable interrupts)	
-	// GIMSK |= (1 << INT0);    	// enable external pin interrupt
-	// MCUCR |= (1 << ISC01);		// set rising edge to trigger interrupt
-	// MCUCR |= (1 << ISC00);		//
-	// sei();                   	// enable global interrupt flag in SREG
 	
-	configureTimer0();	
+	configurePinChangeInterrup();
+	//configureTimer0();	
 }
 
 void loop() 
 {
 	
+}
+
+void configurePinChangeInterrup()
+{
+	//configuring Pin-Change-Interrupt
+	cli();						// clear global interrupt flag (disable interrupts)	
+	GIMSK |= (1 << PCIE);    	// enable pin change interrupt
+	PCMSK |= (1 << PCINT1);		// set interrupt pin: pin 6 (PB1)
+	 sei();                   	// enable global interrupt flag in SREG
 }
 
 void configureTimer0()
@@ -63,8 +66,15 @@ ISR(TIMER0_COMPA_vect)
 	} 
 }
 
-// ISR external interrupt
-ISR(INT0_vect)
+// ISR pin change interrupt
+ISR(PCINT0_vect)
 {
-	pulse_count++; 
+	if(digitalRead(INTERRUPT_PIN))	//rising edge, could potentially be ignored
+	{
+		pulse_count++; 
+	}
+	else
+	{
+		// do nothing
+	}
 }

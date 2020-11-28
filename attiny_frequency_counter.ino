@@ -9,10 +9,9 @@ void setup()
 {
 	pinMode(LED_PIN, OUTPUT);
 	pinMode(INT_PIN, INPUT_PULLUP);
-	pinMode(PB1, OUTPUT);
 	
 	configurePinChangeInterrup();
-	//configureTimer0();	
+	configureTimer0();	
 }
 
 void loop() 
@@ -22,11 +21,12 @@ void loop()
 
 void configurePinChangeInterrup()
 {
-	//configuring Pin-Change-Interrupt
 	cli();						// clear global interrupt flag (disable interrupts)	
+	
 	GIMSK |= (1 << PCIE);    	// enable pin change interrupt
 	PCMSK |= (1 << PCINT1);		// set interrupt pin: pin 6 (PB1)
-	 sei();                   	// enable global interrupt flag in SREG
+	
+	sei();                   	// enable global interrupt flag in SREG
 }
 
 void configureTimer0()

@@ -1,9 +1,13 @@
-#define INTERRUPT_PIN PCINT1  // This is PB1 per the schematic
-#define INT_PIN PB2           // PB3 (same as PCINT3) - Pin 2
+#include <TinyWire.h>
+
+#define INT_PIN PB1           // PB1 (same as PCINT1) - Pin 6
 #define LED_PIN PB4           // Pin 3
 
 volatile unsigned long _freq;
 volatile unsigned long pulse_count;
+
+byte attiny_address = 10;
+
 
 void setup() 
 {
@@ -12,6 +16,10 @@ void setup()
 	
 	configurePinChangeInterrup();
 	configureTimer0();	
+	
+	TinyWire.begin(attiny_address);				// config TinyWire library for I2C slave functionality
+	TinyWire.onRequest(onI2CRequest);			// register a handler function in case of a request from a master
+	TinyWire.PCINT0Handler(PinChangeISR);		// insert pin change ISR
 }
 
 void loop() 
@@ -19,14 +27,14 @@ void loop()
 	
 }
 
-void configurePinChangeInterrup()
+
+void onI2CRequest() 
 {
-	cli();						// clear global interrupt flag (disable interrupts)	
-	
-	GIMSK |= (1 << PCIE);    	// enable pin change interrupt
-	PCMSK |= (1 << PCINT1);		// set interrupt pin: pin 6 (PB1)
-	
-	sei();                   	// enable global interrupt flag in SREG
+	char c = "xy";
+	// sends one byte with content 'b' to the master, regardless how many bytes he expects
+	// if the buffer is empty, but the master is still requesting, the slave aborts the communication
+	// (so it is not blocking)
+	TinyWire.send(c, 2);
 }
 
 void configureTimer0()
@@ -50,31 +58,47 @@ void configureTimer0()
 	sei();						// global interrupt enable
 }
 
+void configurePinChangeInterrup()
+{
+	cli();						// clear global interrupt flag (disable interrupts)	
+	
+	GIMSK |= (1 << PCIE);    	// enable pin change interrupt
+	PCMSK |= (1 << PCINT1);		// set interrupt pin: pin 6 (PB1)
+	
+	sei();                   	// enable global interrupt flag in SREG
+}
+
+void PinChangeISR()
+{								//check if interrupt was triggered by clk source
+	if (digitalRead(INT_PIN))	//also check for rising edge
+	{							
+		digitalWrite(LED_PIN, HIGH);
+		delay(500);
+		digitalWrite(LED_PIN, LOW);
+		delay(500);
+		digitalWrite(LED_PIN, HIGH);
+		delay(500);
+		digitalWrite(LED_PIN, LOW);
+		delay(500);
+	}
+	else
+	{
+		//do nothing
+	}
+}
+
 // TIMER0 ISR
 ISR(TIMER0_COMPA_vect) 
 {
 	//_freq = pulse_count * 250;	//i assume at least
 	
 	//debugging stuff
-	if( digitalRead(LED_PIN)) //toggle led
-	{
-		digitalWrite(LED_PIN, LOW);
-	}
-	else
-	{
-		digitalWrite(LED_PIN, HIGH);
-	} 
-}
-
-// ISR pin change interrupt
-ISR(PCINT0_vect)
-{
-	if(digitalRead(INTERRUPT_PIN))	//rising edge, could potentially be ignored
-	{
-		pulse_count++; 
-	}
-	else
-	{
-		// do nothing
-	}
+	// if( digitalRead(LED_PIN)) //toggle led
+	// {
+		// digitalWrite(LED_PIN, LOW);
+	// }
+	// else
+	// {
+		// digitalWrite(LED_PIN, HIGH);
+	// } 
 }

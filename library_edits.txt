@@ -1,0 +1,30 @@
+editing tinWire library. Heavily inspired by: https://atadiat.com/en/e-arduino-trick-share-interrupt-service-routines-between-libraries-application/
+
+---- twi.h ----
+define function pointer:
+
+static void (*__PCINT0Hook)(void);
+
+
+---- twi.cpp ----
+include handler in ISR
+
+  if(__PCINT0Hook)	//if not null
+  {
+	__PCINT0Hook();
+  }
+  
+  
+---- TinyWire.h ----
+add method to tinyWire class
+
+void PCINT0Hook(void (*function)(void));
+
+
+---- TinyWire.cpp ----
+write method for adding to ISR
+
+void TinyTwi::PCINT0Hook(void (*function)(void))
+{
+	__PCINT0Hook = function;
+} 

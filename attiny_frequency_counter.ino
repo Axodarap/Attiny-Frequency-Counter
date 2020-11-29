@@ -30,11 +30,12 @@ void loop()
 
 void onI2CRequest() 
 {
+	unsigned long test = 10000;
 	char c = "xy";
 	// sends one byte with content 'b' to the master, regardless how many bytes he expects
 	// if the buffer is empty, but the master is still requesting, the slave aborts the communication
 	// (so it is not blocking)
-	TinyWire.send(c, 2);
+	TinyWire.send(test, 4);
 }
 
 void configureTimer0()
@@ -91,14 +92,4 @@ void PinChangeISR()
 ISR(TIMER0_COMPA_vect) 
 {
 	//_freq = pulse_count * 250;	//i assume at least
-	
-	//debugging stuff
-	// if( digitalRead(LED_PIN)) //toggle led
-	// {
-		// digitalWrite(LED_PIN, LOW);
-	// }
-	// else
-	// {
-		// digitalWrite(LED_PIN, HIGH);
-	// } 
 }

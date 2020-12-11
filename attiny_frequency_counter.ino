@@ -32,8 +32,7 @@ void loop()
 	
 }
 
-
-
+// -------------------------------------------------------------------------------------------------------------
 
 void onI2CRequest() 
 {
@@ -49,15 +48,15 @@ void configureTimer0()
 {
 	cli();						// global interrupt disable
 
-	TCCR0B |=  (1 << CS02);		// Prescaler: 256 (p.80) --> 32.25 kHz
+	TCCR0B |=  (1 << CS02);		// Prescaler: 1024 (p.80) --> 7.8125 kHz
 	TCCR0B &=~ (1 << CS01);		// 
-	TCCR0B &=~ (1 << CS00);		//
+	TCCR0B |=  (1 << CS00);		//
 
 	TCCR0A &=~ (1 << WGM00);	// CTC mode - clear timer on compare (p.79)
 	TCCR0A |=  (1 << WGM01);	//
 	TCCR0A &=~ (1 << WGM02);	//
 
-	OCR0A = 124;				// Output compare Register, 2^8: 32.25 kHz -> 250Hz
+	OCR0A = 255	;				// Output compare Register, 7.1825 kHz / 255 = ~30 Hz
 	TIMSK |= (1 << OCIE0A);		// enable Timer0 Interrupt
 
 	GTCCR |= (1 << PSR0);		// reset prescaler counting
@@ -80,14 +79,6 @@ void PinChangeISR()
 {								//check if interrupt was triggered by clk source
 	if (digitalRead(INT_PIN))	//also check for rising edge
 	{							
-		// digitalWrite(LED_PIN, HIGH);
-		// delay(500);
-		// digitalWrite(LED_PIN, LOW);
-		// delay(500);
-		// digitalWrite(LED_PIN, HIGH);
-		// delay(500);
-		// digitalWrite(LED_PIN, LOW);
-		// delay(500);
 		pulse_count++;
 	}
 	else
@@ -99,6 +90,19 @@ void PinChangeISR()
 // TIMER0 ISR
 ISR(TIMER0_COMPA_vect) 
 {
-	_freq = pulse_count * 250;	//i assume at least
-	pulse_count = 0;
+	static int prescale_counter = 0;	//further dividing the counter down to 1Hz
+	prescale_counter++;
+
+	if(prescale_counter == 30)
+	{
+		_freq = pulse_count;
+		pulse_count = 0;
+		if(digitalRead(LED_PIN))
+			digitalWrite(LED_PIN, LOW);
+		else
+			digitalWrite(LED_PIN, HIGH);
+		
+		prescale_counter = 0;
+	}
+
 }

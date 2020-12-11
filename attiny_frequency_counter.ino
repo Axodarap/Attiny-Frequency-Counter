@@ -8,6 +8,11 @@ volatile unsigned long pulse_count;
 
 byte attiny_address = 10;
 
+union buffer_union{
+	char my_byte[4];
+	long my_long;
+}payload; 
+
 
 void setup() 
 {
@@ -28,14 +33,16 @@ void loop()
 }
 
 
+
+
 void onI2CRequest() 
 {
-	unsigned long test = 10000;
-	char c = "xy";
+	payload.my_long = 123456;
+
 	// sends one byte with content 'b' to the master, regardless how many bytes he expects
 	// if the buffer is empty, but the master is still requesting, the slave aborts the communication
 	// (so it is not blocking)
-	TinyWire.send(test, 4);
+	TinyWire.send(payload.my_byte, 4); //sizeof(test));
 }
 
 void configureTimer0()

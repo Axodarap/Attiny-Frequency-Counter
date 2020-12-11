@@ -37,7 +37,7 @@ void loop()
 
 void onI2CRequest() 
 {
-	payload.my_long = 123456;
+	payload.my_long = _freq;
 
 	// sends one byte with content 'b' to the master, regardless how many bytes he expects
 	// if the buffer is empty, but the master is still requesting, the slave aborts the communication
@@ -80,14 +80,15 @@ void PinChangeISR()
 {								//check if interrupt was triggered by clk source
 	if (digitalRead(INT_PIN))	//also check for rising edge
 	{							
-		digitalWrite(LED_PIN, HIGH);
-		delay(500);
-		digitalWrite(LED_PIN, LOW);
-		delay(500);
-		digitalWrite(LED_PIN, HIGH);
-		delay(500);
-		digitalWrite(LED_PIN, LOW);
-		delay(500);
+		// digitalWrite(LED_PIN, HIGH);
+		// delay(500);
+		// digitalWrite(LED_PIN, LOW);
+		// delay(500);
+		// digitalWrite(LED_PIN, HIGH);
+		// delay(500);
+		// digitalWrite(LED_PIN, LOW);
+		// delay(500);
+		pulse_count++;
 	}
 	else
 	{
@@ -98,5 +99,6 @@ void PinChangeISR()
 // TIMER0 ISR
 ISR(TIMER0_COMPA_vect) 
 {
-	//_freq = pulse_count * 250;	//i assume at least
+	_freq = pulse_count * 250;	//i assume at least
+	pulse_count = 0;
 }
